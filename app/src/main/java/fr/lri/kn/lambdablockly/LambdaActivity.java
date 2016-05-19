@@ -14,69 +14,80 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.EditText;
 
+import fr.lri.kn.calculus.TermBuilder;
+
+class CustomWebChromeClient extends WebChromeClient {
+
+    private Context mContext;
+
+    CustomWebChromeClient(Context ctx) {
+        super();
+        mContext = ctx;
+    }
+
+    @Override
+    public boolean onJsPrompt (WebView view, String url, String message, final String defaultValue, final JsPromptResult result)
+    {
+        View v = LayoutInflater.from(mContext).inflate(R.layout.variable_dialog,null);
+        final EditText input = (EditText) v.findViewById(R.id.variable_name);
+        input.setText(defaultValue);
+        input.setSelection(defaultValue.length());
+        new AlertDialog.Builder(mContext)
+                .setView(v)
+                .setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+
+                                result.confirm(input.getText().toString());
+                            }
+                        })
+                .setNegativeButton(android.R.string.cancel,
+                        new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                result.confirm(defaultValue);
+                            }
+                        })
+                .create()
+                .show();
+        return true;
+
+    }
+
+    @Override
+    public boolean onJsConfirm(WebView view, String url, String message, final JsResult result) {
+        new AlertDialog.Builder(mContext)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                result.confirm();
+                            }
+                        })
+                .setNegativeButton(android.R.string.cancel,
+                        new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                result.cancel();
+                            }
+                        })
+                .create()
+                .show();
+
+        return true;
+    }
+
+}
+
 public class LambdaActivity extends AppCompatActivity {
     private WebView mWebView;
-    final Context myApp = this;
-    final class MyWebChromeClient extends WebChromeClient {
-        @Override
-        public boolean onJsPrompt (WebView view, String url, String message, final String defaultValue, final JsPromptResult result)
-        {
 
-            View v = LayoutInflater.from(myApp).inflate(R.layout.variable_dialog,null);
-            final EditText input = (EditText) v.findViewById(R.id.variable_name);
-            input.setText(defaultValue);
-            new AlertDialog.Builder(myApp)
-                    .setView(v)
-                    .setPositiveButton(android.R.string.ok,
-                            new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-
-                                    result.confirm(input.getText().toString());
-                                }
-                            })
-                    .setNegativeButton(android.R.string.cancel,
-                            new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    result.confirm(defaultValue);
-                                }
-                            })
-                    .create()
-                    .show();
-            return true;
-
-        }
-
-        @Override
-        public boolean onJsConfirm(WebView view, String url, String message, final JsResult result) {
-            new AlertDialog.Builder(myApp)
-                    .setTitle("App Titler")
-                    .setMessage(message)
-                    .setPositiveButton(android.R.string.ok,
-                            new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    result.confirm();
-                                }
-                            })
-                    .setNegativeButton(android.R.string.cancel,
-                            new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    result.cancel();
-                                }
-                            })
-                    .create()
-                    .show();
-
-            return true;
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,11 +95,11 @@ public class LambdaActivity extends AppCompatActivity {
 
         mWebView = (WebView) findViewById(R.id.webView);
 
-        mWebView.setWebChromeClient(new MyWebChromeClient());
+        mWebView.setWebChromeClient(new CustomWebChromeClient(this));
         mWebView.getSettings().setJavaScriptEnabled(true);
 
         mWebView.loadUrl("file:///android_asset/blockly/index.html");
-
+        mWebView.addJavascriptInterface(new TermBuilder(), "TermBuilder");
 
 
     }
