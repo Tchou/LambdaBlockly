@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">LambdaBlockly</string>
+    <string name="variable_name">Variable Name</string>
+    <string name="variable_name_title">Enter a name for the variable</string>
+</resources>
