@@ -5,16 +5,17 @@ import android.webkit.JavascriptInterface;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-/**
- * Created by kim on 19/05/16.
- */
+import fr.lri.kn.utils.Observer;
+
 public class TermBuilder {
 
 
     private Deque<ITerm> stack;
+    private Observer<String> gui;
 
-    public TermBuilder() {
+    public TermBuilder(Observer<String> gui) {
         stack = new ArrayDeque<>();
+        this.gui = gui;
     }
 
     @JavascriptInterface
@@ -44,4 +45,12 @@ public class TermBuilder {
         return stack.peek();
     }
 
+    @JavascriptInterface
+    public void eval() {
+        ITerm t = getTerm();
+        if (t != null) {
+            ITerm s = t.eval(new Env<String, ITerm>());
+            gui.notify(s.toString());
+        }
+    }
 }
